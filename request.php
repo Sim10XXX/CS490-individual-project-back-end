@@ -8,6 +8,55 @@
     if ($cnx->connect_error)
         die('Connection failed: ' . $cnx->connect_error);
     switch ($q){
+        case 10:
+            //count of available film to rent out
+            $query = '  SELECT title, COUNT(*) AS rented
+                        FROM rental, inventory, film
+                        WHERE return_date IS NULL AND rental.inventory_id = inventory.inventory_id AND inventory.film_id = film.film_id 
+                        AND film.title ="'. $v .'"
+                        GROUP BY title
+            ';
+            $cursor = $cnx->query($query);
+            $row = $cursor->fetch_assoc();
+            if ($row == NULL){
+                $rented = 0;
+            }
+            else{
+                $rented = $row['rented'];
+            }
+
+            $query = '  SELECT title, COUNT(*) AS copies
+                        FROM inventory, film
+                        WHERE inventory.film_id = film.film_id AND film.title ="'. $v .'"
+                        GROUP BY title
+            ';
+            $cursor = $cnx->query($query);
+            $row = $cursor->fetch_assoc();
+            echo '<h2># Available in store: '. $row['copies'] - $rented .'</h2>';
+
+            $query = '  SELECT inventory_id
+                        FROM inventory, film
+                        WHERE inventory.film_id = film.film_id AND inventory_id NOT IN (SELECT inventory.inventory_id
+                                                    FROM rental, inventory, film
+                                                    WHERE return_date IS NULL AND rental.inventory_id = inventory.inventory_id AND inventory.film_id = film.film_id 
+                                                    AND film.title ="'. $v .'")
+                        AND film.title ="'. $v .'" 
+            ';
+            $cursor = $cnx->query($query);
+
+            echo '<form action="update.php?q=3" method="post">
+                Select inventory id:
+                <select name="inventory_id" id="inventory_id">';
+            while ($row = $cursor->fetch_assoc()) {
+                echo '<option value="'. $row['inventory_id'] .'">'. $row['inventory_id'] .'</option>';
+            }
+            echo        '</select>
+                <br>Customer id to rent to: <input type="text" name= "customer_id" id= "customer_id">
+                <br>Staff id: <input type="text" name= "staff_id" id= "staff_id">
+                <br><input type="submit" value="Rent Movie">
+                </form>
+            ';
+        
         //Home page requests
         //
         //
@@ -20,6 +69,7 @@
             $row = $cursor->fetch_assoc();
             
             echo '<h3> '. $row['title'] .' ('. $row['release_year'] .') '. $row['length'] .' min, rated: '. $row['rating'] .'</h3><p>'. $row['description'] .'</p>';
+            
             break;
         case 1: //Top 5 movies
             $query = '  SELECT title, COUNT(*) AS rented
@@ -96,6 +146,7 @@
                             FROM film, film_actor, actor
                             WHERE film.film_id = film_actor.film_id AND film_actor.actor_id = actor.actor_id AND 
                             (actor.first_name LIKE "%'. $v .'%" OR title LIKE "%'. $v .'%")
+                            GROUP BY title
             ';
             }
             else{
@@ -105,6 +156,7 @@
                             (actor.first_name LIKE "%'. $v .'%" OR title LIKE "%'. $v .'%") AND 
                             film.film_id = film_category.film_id AND film_category.category_id = category.category_id
                             AND category.name = "'. $g .'"
+                            GROUP BY title
             ';
             }
             
@@ -112,9 +164,11 @@
             echo '<table><h3>';
             echo "<tr><th>Movie Title</th></tr>";
             while($row = $cursor->fetch_assoc()){
-                echo '<tr><td> <button type="button" class="button2" onclick="subrequest(2, \''. $row['title'] .'\')">' . $row['title'] . ' </button></td></tr>';
+                echo '<tr><td> <button type="button" class="button2" onclick="subrequest(10, \''. $row['title'] .'\')">' . $row['title'] . ' </button></td></tr>';
             }
             echo '</h3></table>';
+
+            
             break;
 
         //Customer page requests

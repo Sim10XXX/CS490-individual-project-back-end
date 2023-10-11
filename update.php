@@ -3,6 +3,7 @@ $q = $_REQUEST["q"];
 //q==0: create new customer
 //q==1: update customer values
 //q==2: delete customer
+//q==3: rent a movie
 echo "yep";
 //echo $_POST["email"];
 $cnx = new mysqli('localhost', 'root', 'Msf56288!)', 'sakila');
@@ -147,6 +148,12 @@ switch ($q){
         $id = $_REQUEST["id"]; 
         $query = '  DELETE FROM customer 
                     WHERE customer_id = '.$id.';
+        ';
+        $cursor = $cnx->query($query);
+        break;
+    case 3: //q==3: rent a movie
+        $query = '  INSERT INTO rental (inventory_id, customer_id, staff_id, rental_date)
+                    VALUES ("'.$_POST["inventory_id"].'", "'.$_POST["customer_id"].'", "'.$_POST["staff_id"].'", now())
         ';
         $cursor = $cnx->query($query);
         break;
