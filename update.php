@@ -112,8 +112,13 @@ switch ($q){
 
         break;
     case 2: //q==2: delete customer
-        // !!! this will only work with test customer, because dependecies aren't taken care of !!!
         $id = $_REQUEST["id"]; 
+
+        $query = '  DELETE FROM rental
+                    WHERE customer_id = '.$id.';
+        ';
+        $cursor = $cnx->query($query);
+
         $query = '  DELETE FROM customer 
                     WHERE customer_id = '.$id.';
         ';

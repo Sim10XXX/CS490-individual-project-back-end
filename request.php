@@ -219,7 +219,7 @@
         </form>
         
         <form action="update.php?q=2&id='. $row['customer_id'] .'" method="post">
-            <input type="submit" value="Delete Customer">
+            <input type="submit" value="Delete Customer" onclick="return confirm(\'This will delete the customer and all rental records associated with them.\nAre you sure?\')">
         </form>
         ';
             
