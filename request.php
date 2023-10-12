@@ -66,33 +66,7 @@
                 <br><br><input type="submit" class = "button3" value="Rent Movie">
                 </form>
             ';
-            break;
-        case 12: //special case to show if customer id input is valid
-            $query = $cnx->prepare('  SELECT customer_id
-                        FROM customer
-                        WHERE customer_id = ?
-            ');
-            $query->bind_param("s", $v);
-            $query->execute();
-            $cursor = $query->get_result();
-            $row = $cursor->fetch_assoc();
-            if ($row == NULL){
-                echo '<p style="color:red;">Invalid Customer ID!</p>';
-            }
-            break;
-        case 13: //special case to show if staff id input is valid
-            $query = $cnx->prepare('  SELECT staff_id
-                        FROM staff
-                        WHERE staff_id = ?
-            ');
-            $query->bind_param("s", $v);
-            $query->execute();
-            $cursor = $query->get_result();
-            $row = $cursor->fetch_assoc();
-            if ($row == NULL){
-                echo '<p style="color:red;">Invalid Staff ID!</p>';
-            }
-            break;
+        
         //Home page requests
         //
         //
@@ -312,6 +286,32 @@
 
              <br><input type="submit" class = "button3" value="Create New Customer">
         </form>';
+            break;
+        case 12: //special case to show if customer id input is valid
+            $query = $cnx->prepare('  SELECT customer_id
+                        FROM customer
+                        WHERE customer_id = ?
+            ');
+            $query->bind_param("s", $v);
+            $query->execute();
+            $cursor = $query->get_result();
+            $row = $cursor->fetch_assoc();
+            if ($row == NULL){
+                echo '<p style="color:red;">Invalid Customer ID!</p>';
+            }
+            break;
+        case 13: //special case to show if staff id input is valid
+            $query = $cnx->prepare('  SELECT staff_id
+                        FROM staff
+                        WHERE staff_id = ?
+            ');
+            $query->bind_param("s", $v);
+            $query->execute();
+            $cursor = $query->get_result();
+            $row = $cursor->fetch_assoc();
+            if ($row == NULL){
+                echo '<p style="color:red;">Invalid Staff ID!</p>';
+            }
             break;
         /*case -1: //test case
             $query = '  SELECT country

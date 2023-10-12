@@ -154,7 +154,7 @@ switch ($q){
                     FROM customer
                     WHERE customer_id = ?
         ');
-        $query->bind_param("s", $v);
+        $query->bind_param("s", $_POST["customer_id"]);
         $query->execute();
         $cursor = $query->get_result();
         $row = $cursor->fetch_assoc();
@@ -167,7 +167,7 @@ switch ($q){
                     FROM staff
                     WHERE staff_id = ?
         ');
-        $query->bind_param("s", $v);
+        $query->bind_param("s", $_POST["staff_id"]);
         $query->execute();
         $cursor = $query->get_result();
         $row = $cursor->fetch_assoc();
