@@ -16,17 +16,21 @@ function updatelocations($cnx){
     
     //Check country
 
-    $query = '  SELECT country_id
+    $query = $cnx->prepare('  SELECT country_id
             FROM country
-            WHERE country = "'.$_POST["country"].'"
-    ';
-    $cursor = $cnx->query($query);
+            WHERE country = ?
+    ');
+    $query->bind_param("s", $_POST["country"]);
+    $query->execute();
+    $cursor = $query->get_result();
     $row = $cursor->fetch_assoc();
     if ($row == NULL){
-        $query = 'INSERT INTO country (country)
-                    VALUES ("'.$_POST["country"].'")
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('INSERT INTO country (country)
+                    VALUES (?)
+        ');
+        $query->bind_param("s", $_POST["country"]);
+        $query->execute();
+        $cursor = $query->get_result();
         $last_id = $cnx->insert_id;
     }
     else{
@@ -35,18 +39,22 @@ function updatelocations($cnx){
 
     //Check city
 
-    $query = '  SELECT city_id
+    $query = $cnx->prepare('  SELECT city_id
                 FROM city
-                WHERE city = "'.$_POST["city"].'"
-    ';
-    $cursor = $cnx->query($query);
+                WHERE city = ?
+    ');
+    $query->bind_param("s", $_POST["city"]);
+    $query->execute();
+    $cursor = $query->get_result();
     $row = $cursor->fetch_assoc();
 
     if ($row == NULL){
-        $query = '  INSERT INTO city (city, country_id)
-                    VALUES ("'.$_POST["city"].'", "'.$last_id.'")
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  INSERT INTO city (city, country_id)
+                    VALUES (?, ?)
+        ');
+        $query->bind_param("ss", $_POST["city"], $last_id);
+        $query->execute();
+        $cursor = $query->get_result();
         $last_id = $cnx->insert_id;
     }
     else{
@@ -55,19 +63,23 @@ function updatelocations($cnx){
 
     //Check Address
 
-    $query = '  SELECT address_id
+    $query = $cnx->prepare('  SELECT address_id
                 FROM address
-                WHERE address = "'.$_POST["address"].'" AND district = "'.$_POST["district"].'" AND phone = "'.$_POST["phone"].'"
-    ';
-    $cursor = $cnx->query($query);
+                WHERE address = ? AND district = ? AND phone = ?
+    ');
+    $query->bind_param("sss", $_POST["address"], $_POST["district"], $_POST["phone"]);
+    $query->execute();
+    $cursor = $query->get_result();
     $row = $cursor->fetch_assoc();
 
     if ($row == NULL){
         // !!! location is currently always (0, 0) !!!
-        $query = '  INSERT INTO address (address, address2, district, city_id, postal_code, phone, location)
-                    VALUES ("'.$_POST["address"].'", "'.$_POST["address2"].'", "'.$_POST["district"].'", "'.$last_id.'", "'.$_POST["postal_code"].'", "'.$_POST["phone"].'", POINT(0,0))
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  INSERT INTO address (address, address2, district, city_id, postal_code, phone, location)
+                    VALUES (?, ?, ?, ?, ?, ?, POINT(0,0))
+        ');
+        $query->bind_param("ssssss", $_POST["address"], $_POST["address2"], $_POST["district"], $last_id, $_POST["postal_code"], $_POST["phone"]);
+        $query->execute();
+        $cursor = $query->get_result();
         $last_id = $cnx->insert_id;
     }
     else{
@@ -84,10 +96,12 @@ switch ($q){
         //Insert Customer
 
         // !!! store id is currently always 1 !!!
-        $query = '  INSERT INTO customer (first_name, last_name, email, store_id, address_id)
-                    VALUES ("'.$_POST["first_name"].'", "'.$_POST["last_name"].'", "'.$_POST["email"].'", 1, "'.$last_id.'")
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  INSERT INTO customer (first_name, last_name, email, store_id, address_id)
+                    VALUES (?, ?, ?, 1, ?)
+        ');
+        $query->bind_param("ssss", $_POST["first_name"], $_POST["last_name"], $_POST["email"], $last_id);
+        $query->execute();
+        $cursor = $query->get_result();
         
         header("Location: customers.html"); /* Redirect browser */
         exit;
@@ -98,12 +112,14 @@ switch ($q){
 
         $last_id = updatelocations($cnx);
 
-        $query = '  UPDATE customer
-                    SET first_name = "'.$_POST["first_name"].'", last_name = "'.$_POST["last_name"].'", email = "'.$_POST["email"].'",
-                     active = "'.$_POST["active"].'", address_id = "'.$last_id.'"
-                    WHERE customer_id = '.$id.' 
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  UPDATE customer
+                    SET first_name = ?, last_name = ?, email = ?,
+                     active = ?, address_id = ?
+                    WHERE customer_id = ? 
+        ');
+        $query->bind_param("ssssss", $_POST["first_name"], $_POST["last_name"], $_POST["email"], $_POST["active"], $last_id, $id);
+        $query->execute();
+        $cursor = $query->get_result();
 
         
 
@@ -114,15 +130,19 @@ switch ($q){
     case 2: //q==2: delete customer
         $id = $_REQUEST["id"]; 
 
-        $query = '  DELETE FROM rental
-                    WHERE customer_id = '.$id.';
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  DELETE FROM rental
+                    WHERE customer_id = ?;
+        ');
+        $query->bind_param("s", $id);
+        $query->execute();
+        $cursor = $query->get_result();
 
-        $query = '  DELETE FROM customer 
-                    WHERE customer_id = '.$id.';
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  DELETE FROM customer 
+                    WHERE customer_id = ?;
+        ');
+        $query->bind_param("s", $id);
+        $query->execute();
+        $cursor = $query->get_result();
 
         header("Location: customers.html"); /* Redirect browser */
         exit;
@@ -130,10 +150,39 @@ switch ($q){
 
         break;
     case 3: //q==3: rent a movie
-        $query = '  INSERT INTO rental (inventory_id, customer_id, staff_id, rental_date)
-                    VALUES ("'.$_POST["inventory_id"].'", "'.$_POST["customer_id"].'", "'.$_POST["staff_id"].'", now())
-        ';
-        $cursor = $cnx->query($query);
+        $query = $cnx->prepare('  SELECT customer_id
+                    FROM customer
+                    WHERE customer_id = ?
+        ');
+        $query->bind_param("s", $v);
+        $query->execute();
+        $cursor = $query->get_result();
+        $row = $cursor->fetch_assoc();
+        if ($row == NULL){
+            header("Location: movies.html"); /* Redirect browser */
+            exit;
+        }
+
+        $query = $cnx->prepare('  SELECT staff_id
+                    FROM staff
+                    WHERE staff_id = ?
+        ');
+        $query->bind_param("s", $v);
+        $query->execute();
+        $cursor = $query->get_result();
+        $row = $cursor->fetch_assoc();
+        if ($row == NULL){
+            header("Location: movies.html"); /* Redirect browser */
+            exit;
+        }
+
+
+        $query = $cnx->prepare('  INSERT INTO rental (inventory_id, customer_id, staff_id, rental_date)
+                    VALUES (?, ?, ?, now())
+        ');
+        $query->bind_param("sss", $_POST["inventory_id"], $_POST["customer_id"], $_POST["staff_id"]);
+        $query->execute();
+        $cursor = $query->get_result();
 
         header("Location: movies.html"); /* Redirect browser */
         exit;

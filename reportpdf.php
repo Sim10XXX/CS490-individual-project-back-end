@@ -5,12 +5,13 @@ $cnx = new mysqli('localhost', 'root', 'Msf56288!)', 'sakila');
         
 if ($cnx->connect_error)
     die('Connection failed: ' . $cnx->connect_error);
-    $query = '  SELECT first_name, last_name, title
+$query = $cnx->prepare('  SELECT first_name, last_name, title
                 FROM rental, customer, inventory, film
                 WHERE rental.customer_id = customer.customer_id AND inventory.inventory_id = rental.inventory_id 
                 AND film.film_id = inventory.film_id
-';
-$cursor = $cnx->query($query);
+');
+$query->execute();
+$cursor = $query->get_result();
 
 
 for ($i = 0; $row = $cursor->fetch_assoc(); $i++){
