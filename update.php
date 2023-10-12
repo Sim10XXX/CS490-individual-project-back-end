@@ -175,8 +175,10 @@ switch ($q){
             header("Location: movies.html"); /* Redirect browser */
             exit;
         }
-
-
+        if ($_POST["inventory_id"] == NULL){
+            header("Location: movies.html"); /* Redirect browser */
+            exit;
+        }
         $query = $cnx->prepare('  INSERT INTO rental (inventory_id, customer_id, staff_id, rental_date)
                     VALUES (?, ?, ?, now())
         ');
